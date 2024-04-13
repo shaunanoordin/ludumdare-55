@@ -1,0 +1,162 @@
+$white: #fff;
+$light: #eee;
+$light-grey: #ccc;
+$grey: #888;
+$dark-grey: #666;
+$dark: #444;
+$black: #000;
+
+$primary: #c44;
+$primary-highlight: #e66;
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: "Source Code Pro", monospace;
+  font-size: 16px;
+  background: $white;
+  color: $dark;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+a {
+  color: $primary;
+  text-decoration: none;
+
+  &:hover {
+    color: $primary-highlight;
+  }
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+
+  td,
+  th {
+    border: 1px solid $dark;
+  }
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  background: $white;
+}
+
+#app > header,
+#app > footer {
+  font-size: 0.5rem;
+  flex: 0 0 auto;
+  padding: 0.5rem;
+  background: $primary;
+  color: $light;
+}
+
+#app > header {
+  h1 {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+#app > footer {
+  text-align: right;
+
+  a {
+    color: $white;
+    text-decoration: underline;
+  }
+}
+
+#app > main {
+  background: $dark url("../assets/simple-bg.png");
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  position: relative;
+
+  #canvas {
+    image-rendering: pixelated;  /* Pixel art: Maintains sprites' pixel sharpness when canvas's CSS width/height is scaled up from its HTML width/height */
+    flex: 0 0 auto;
+    display: block;
+    margin: auto auto;
+    max-width: 100vw;
+    max-height: 80vh;
+    cursor: pointer;
+    user-select: none;
+    touch-action: none;
+    background: $white;
+  }
+
+  &.fullscreen #canvas {
+    max-height: 100vh;
+  }
+
+  #home-menu, #interaction-menu {
+    display: block;
+    overflow: auto;
+    position: absolute;
+    border: 1px solid $white;
+    visibility: hidden;
+    background: rgba(128, 128, 128, 0.5);
+
+    > div {
+      background: #fff;
+      margin: 1em;
+      padding: 1em;
+    }
+  }
+
+  .ui-button {
+    position: absolute;
+    cursor: pointer;
+    color: #fff;
+    background: #c44;
+    border: 2px solid #ccc;
+    border-radius: 1rem;
+    box-shadow: 0.1rem 0.1rem 0 rgba(0, 0, 0, 0.5);
+
+    &:hover {
+      border: 2px solid #fff;
+    }
+
+    &:active {
+      border: 2px solid #888;
+    }
+
+    img {
+      display: block;
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+  }
+
+  #button-home {
+    top: 0.5em;
+    left: 0.5em;
+  }
+
+  #button-fullscreen {
+    top: 0.5em;
+    right: 0.5em;
+  }
+
+  #button-reload {
+    top: 3.5em;
+    left: 0.5em;
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "plugins": ["@babel/plugin-transform-optional-chaining"],
+  "presets": ["@babel/preset-env"]
+}
