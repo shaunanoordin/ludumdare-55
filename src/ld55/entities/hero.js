@@ -161,8 +161,7 @@ export default class Hero extends Entity {
       const EXECUTION_DURATION = EXPECTED_TIMESTEP * 2
       const WINDDOWN_DURATION = EXPECTED_TIMESTEP * 10
       const PUSH_POWER = this.size * 0.3
-      const MAX_PUSH = EXECUTION_DURATION / 1000 * 60 * PUSH_POWER
-
+      
       if (!action.state) {  // Trigger only once, at the start of the action
 
         // Figure out the initial direction of the dash

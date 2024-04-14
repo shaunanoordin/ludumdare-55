@@ -5,7 +5,7 @@ import { ROTATIONS } from '@avo/constants'
 import Hero from './entities/hero'
 import Wall from '@avo/entity/types/wall'
 
-import ZeldaControls from '@avo/rule/types/zelda-controls'
+import PlayerControls from './rules/player-controls'
 
 export default class LD55Story extends Story {
   constructor (app) {
@@ -30,7 +30,7 @@ export default class LD55Story extends Story {
     app.hero.rotation = ROTATIONS.NORTH
     app.camera.target = app.hero
 
-    app.addRule(new ZeldaControls(app))
+    app.addRule(new PlayerControls(app))
 
     app.addEntity(new Wall(app, 0, 0, 1, 23))  // West Wall
     app.addEntity(new Wall(app, 22, 0, 1, 23))  // East Wall
