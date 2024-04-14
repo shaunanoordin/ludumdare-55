@@ -10,6 +10,13 @@ export default class PlayerControls extends Rule {
     super(app)
     this._type = 'player-controls'
     this.inputTap = false
+    this.chargeUpStart = false
+    this.chargeUpEnd = false
+    
+    this.onKeyDown = this.onKeyDown.bind(this)
+    this.onKeyUp = this.onKeyUp.bind(this)
+    app.addEventListener('keydown', this.onKeyDown)
+    app.addEventListener('keyup', this.onKeyUp)
 
     this.onPointerTap = this.onPointerTap.bind(this)
     app.addEventListener('pointertap', this.onPointerTap)
@@ -57,21 +64,26 @@ export default class PlayerControls extends Rule {
         if (keysPressed['ArrowUp']) directionY--
       }
       
-      if (
-        (keysPressed['x'] && !keysPressed['x'].acknowledged)
-        || (keysPressed['X'] && !keysPressed['X'].acknowledged)
-        || this.inputTap
-      ) {
+      // Charge Up action
+      if (this.chargeUpStart && !this.chargeUpEnd) {
+        this.chargeUpStart = false
         intent = {
-          name: 'dash',
+          name: 'chargeUpStart',
           directionX,
           directionY,
         }
-        if (keysPressed['x']) keysPressed['x'].acknowledged = true
-        if (keysPressed['X']) keysPressed['X'].acknowledged = true
-        this.inputTap = false
-
-      } else if (directionX || directionY) {
+      } else if (this.chargeUpEnd) {
+        this.chargeUpStart = false
+        this.chargeUpEnd = false
+        intent = {
+          name: 'chargeUpEnd',
+          directionX,
+          directionY,
+        }
+      }
+      
+      // Move action
+      if (!intent && (directionX || directionY)) {
         intent = {
           name: 'move',
           directionX,
@@ -119,7 +131,16 @@ export default class PlayerControls extends Rule {
     c2d.fillStyle = '#c44'
     c2d.fillText(text, LEFT, BOTTOM)
 
-    text = hero?.action?.name + ' (' + hero?.moveSpeed.toFixed(2) + ')'
+    if (hero?.action?.name === 'move') {
+      text = hero?.action?.name + ' (' + hero?.moveSpeed.toFixed(2) + ')'
+    } else if (hero?.action?.name === 'chargeUpStart') {
+      text = hero?.action?.name + ' (' + hero?.action?.counter?.toFixed(0) + ')'
+    } else if (hero?.action?.name === 'chargeUpEnd') {
+      text = hero?.action?.name + ' (' + hero?.action?.power?.toFixed(0) + ')'
+    } else {
+      text = hero?.action?.name
+    }
+
     c2d.textAlign = 'right'
     c2d.strokeStyle = '#fff'
     c2d.strokeText(text, RIGHT, BOTTOM)
@@ -261,5 +282,21 @@ export default class PlayerControls extends Rule {
 
   onPointerTap () {
     this.inputTap = true
+  }
+
+  onKeyDown ({ key }) {
+    const app = this._app
+    if (key === 'z' || key === 'Z') {
+      const keyPressed = app.playerInput.keysPressed[key]
+      if (keyPressed && keyPressed.duration === 0) {
+        this.chargeUpStart = key
+      }
+    }
+  }
+
+  onKeyUp ({ key }) {
+    if (key === 'z' || key === 'Z') {
+      this.chargeUpEnd = key
+    }
   }
 }

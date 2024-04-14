@@ -3,6 +3,7 @@ import { POINTER_STATES, TILE_SIZE, EXPECTED_TIMESTEP, LAYERS, DIRECTIONS } from
 
 const INVULNERABILITY_WINDOW = 3000
 const MOVE_ACTION_CYCLE_DURATION = 500
+const MAX_CHARGE_UP_POWER = 1000
 
 export default class Hero extends Entity {
   constructor (app, col = 0, row = 0) {
@@ -121,6 +122,15 @@ export default class Hero extends Entity {
     } else {  // Perform a new action
       // Note: every 'move' action is considered a new action
 
+      if (intent?.name === 'chargeUpEnd' && action?.name === 'chargeUpStart') {  // If the charge up action is finished, trigger the charged up action.
+        this.action = {
+          ...intent,
+          name: intent.name,
+          counter: 0,
+          power: action.counter, 
+        }
+      }
+
       if (action?.name === 'idle' || action?.name === 'move' )  {  // Can the action be overwritten by a new action? If not, the action must play through to its finish.
         this.action = {
           ...intent,
@@ -135,6 +145,7 @@ export default class Hero extends Entity {
   Perform the action.
    */
   processAction (timeStep) {
+    const tmod = timeStep / EXPECTED_TIMESTEP
     if (!this.action) return
 
     const action = this.action
@@ -145,7 +156,7 @@ export default class Hero extends Entity {
 
     } else if (action.name === 'move') {
 
-      const moveAcceleration = this.moveAcceleration * timeStep / EXPECTED_TIMESTEP || 0
+      const moveAcceleration = this.moveAcceleration * tmod || 0
       const directionX = action.directionX || 0
       const directionY = action.directionY || 0
       const actionRotation = Math.atan2(directionY, directionX)
@@ -155,12 +166,16 @@ export default class Hero extends Entity {
       this.rotation = actionRotation
 
       action.counter = (action.counter + timeStep) % MOVE_ACTION_CYCLE_DURATION
+    
+    } else if (action.name === 'chargeUpStart') {
+      action.counter = Math.min((action.counter + timeStep), MAX_CHARGE_UP_POWER)
 
-    } else if (action.name === 'dash') {
+    } else if (action.name === 'chargeUpEnd') {
+
       const WINDUP_DURATION = EXPECTED_TIMESTEP * 5
       const EXECUTION_DURATION = EXPECTED_TIMESTEP * 2
       const WINDDOWN_DURATION = EXPECTED_TIMESTEP * 10
-      const PUSH_POWER = this.size * 0.3
+      const PUSH_POWER = this.size * 0.5 * (action.power / MAX_CHARGE_UP_POWER)
       
       if (!action.state) {  // Trigger only once, at the start of the action
 

@@ -437,6 +437,7 @@ export default class AvO {
         this.setHomeMenu(!this.homeMenu)
         break
 
+      /*
       // DEBUG
       case 'z':
         if (!this.interactionMenu) {
@@ -452,6 +453,7 @@ export default class AvO {
           this.hero.spriteStyle = 'toon'
         }
         break
+      */
 
       case '-':
       case '_':
