@@ -27,7 +27,6 @@ export default class Hero extends Entity {
    */
 
   play (timeStep) {
-    const app = this._app
     super.play(timeStep)
 
     this.processIntent()
@@ -37,6 +36,8 @@ export default class Hero extends Entity {
     if (this.invulnerability > 0) {
       this.invulnerability = Math.max(this.invulnerability - timeStep, 0)
     }
+
+    this.doMaxSpeedLimit()
   }
 
   paint (layer = 0) {

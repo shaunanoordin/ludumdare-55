@@ -28,7 +28,6 @@ export default class Hero extends Entity {
    */
 
   play (timeStep) {
-    const app = this._app
     super.play(timeStep)
 
     this.processIntent()

@@ -2,11 +2,11 @@ import {
   TILE_SIZE, ROTATIONS, DIRECTIONS, SHAPES, EXPECTED_TIMESTEP, LAYERS,
 } from '@avo/constants'
 
-const MOVE_MAX_SPEED_MODIFIER = 2 / EXPECTED_TIMESTEP
-const PUSH_MAX_SPEED_MODIFIER = 12 / EXPECTED_TIMESTEP
-const MOVE_ACCELERATION_MODIFIER = 1 / EXPECTED_TIMESTEP
-const MOVE_DECELERATION_MODIFIER = 0.2 / EXPECTED_TIMESTEP
-const PUSH_DECELERATION_MODIFIER = 0.2 / EXPECTED_TIMESTEP
+const MOVE_MAX_SPEED_MODIFIER = 4
+const PUSH_MAX_SPEED_MODIFIER = 32
+const MOVE_ACCELERATION_MODIFIER = 0.4
+const MOVE_DECELERATION_MODIFIER = 0.4
+const PUSH_DECELERATION_MODIFIER = 0.1
 
 const MASS_TO_LINEWIDTH_RATIO = 5
 
@@ -40,11 +40,11 @@ export default class Entity {
     this._solid = true
     this._movable = true
     this._mass = 10  // Only matters if solid && movable
-    this._moveAcceleration = this.size * MOVE_ACCELERATION_MODIFIER
-    this._moveDeceleration = this.size * MOVE_DECELERATION_MODIFIER
-    this._moveMaxSpeed = this.size * MOVE_MAX_SPEED_MODIFIER
-    this._pushDeceleration = this.size * PUSH_DECELERATION_MODIFIER
-    this._pushMaxSpeed = this.size * PUSH_MAX_SPEED_MODIFIER
+    this._moveAcceleration = MOVE_ACCELERATION_MODIFIER
+    this._moveDeceleration = MOVE_DECELERATION_MODIFIER
+    this._moveMaxSpeed = MOVE_MAX_SPEED_MODIFIER
+    this._pushDeceleration = PUSH_DECELERATION_MODIFIER
+    this._pushMaxSpeed = PUSH_MAX_SPEED_MODIFIER
 
     // Additional animation
     this._spriteDirectionEW = DIRECTIONS.EAST  // Only used for 2-directional toon-style sprites
@@ -59,18 +59,17 @@ export default class Entity {
    */
 
   play (timeStep) {
-    // Upkeep: limit speed
-    this.doMaxSpeedLimit(timeStep)
-
     // Update position
-    const timeCorrection = 1
-    // const timeCorrection = (timeStep / EXPECTED_TIMESTEP)  // Edit: time correction may not be needed since Entities fix their own moveXY/pushXY values
+    const timeCorrection = (timeStep / EXPECTED_TIMESTEP)
     this.x += (this.moveX + this.pushX) * timeCorrection
     this.y += (this.moveY + this.pushY) * timeCorrection
 
     // Upkeep: deceleration
     this.doMoveDeceleration(timeStep)
     this.doPushDeceleration(timeStep)
+
+    // Upkeep: limit speed
+    this.doMaxSpeedLimit()
   }
 
   /*
@@ -78,7 +77,6 @@ export default class Entity {
    */
   paint (layer = 0) {
     const c2d = this._app.canvas2d
-    const camera = this._app.camera
     this._app.applyCameraTransforms()
 
     if (layer === LAYERS.ENTITIES_LOWER) {
@@ -170,7 +168,8 @@ export default class Entity {
   e.g. "if a hero is walking, ignore deceleration."
    */
   doMoveDeceleration (timeStep) {
-    const moveDeceleration = this.moveDeceleration * timeStep / EXPECTED_TIMESTEP || 0
+    const timeCorrection = (timeStep / EXPECTED_TIMESTEP)
+    const moveDeceleration = this.moveDeceleration * timeCorrection || 0
     const curRotation = Math.atan2(this.moveY, this.moveX)
     const newMoveSpeed = Math.max(0, this.moveSpeed - moveDeceleration)
     this.moveX = newMoveSpeed * Math.cos(curRotation)
@@ -178,7 +177,8 @@ export default class Entity {
   }
 
   doPushDeceleration (timeStep) {
-    const pushDeceleration = this.pushDeceleration * timeStep / EXPECTED_TIMESTEP || 0
+    const timeCorrection = (timeStep / EXPECTED_TIMESTEP)
+    const pushDeceleration = this.pushDeceleration * timeCorrection || 0
     const curRotation = Math.atan2(this.pushY, this.pushX)
     const newPushSpeed = Math.max(0, this.pushSpeed - pushDeceleration)
     this.pushX = newPushSpeed * Math.cos(curRotation)
@@ -189,7 +189,7 @@ export default class Entity {
   Every entity has a maximum speed limit. Intentional movement speed and
   external force movement speed are treated separately.
    */
-  doMaxSpeedLimit (timeStep) {
+  doMaxSpeedLimit () {
     // Limit max move speed
     if (this.moveMaxSpeed >= 0) {
       const correctedSpeed = Math.min(this.moveMaxSpeed, this.moveSpeed)
