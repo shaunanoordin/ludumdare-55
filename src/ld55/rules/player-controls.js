@@ -68,7 +68,7 @@ export default class PlayerControls extends Rule {
       if (this.chargeUpStart && !this.chargeUpEnd) {
         this.chargeUpStart = false
         intent = {
-          name: 'chargeUpStart',
+          name: 'charging',
           directionX,
           directionY,
         }
@@ -76,7 +76,7 @@ export default class PlayerControls extends Rule {
         this.chargeUpStart = false
         this.chargeUpEnd = false
         intent = {
-          name: 'chargeUpEnd',
+          name: 'skill',
           directionX,
           directionY,
         }
@@ -133,9 +133,9 @@ export default class PlayerControls extends Rule {
 
     if (hero?.action?.name === 'idle' || hero?.action?.name === 'move') {
       text = hero?.action?.name + ' (' + hero?.moveSpeed.toFixed(2) + ')'
-    } else if (hero?.action?.name === 'chargeUpStart') {
+    } else if (hero?.action?.name === 'charging') {
       text = hero?.action?.name + ' (' + hero?.action?.counter?.toFixed(0) + ')'
-    } else if (hero?.action?.name === 'chargeUpEnd') {
+    } else if (hero?.action?.name === 'skill') {
       text = hero?.action?.name + ' (' + hero?.action?.power?.toFixed(0) + ')'
     } else {
       text = hero?.action?.name

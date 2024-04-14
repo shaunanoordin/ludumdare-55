@@ -123,7 +123,7 @@ export default class Hero extends Entity {
     } else {  // Perform a new action
       // Note: every 'move' action is considered a new action
 
-      if (intent?.name === 'chargeUpEnd' && action?.name === 'chargeUpStart') {  // If the charge up action is finished, trigger the charged up action.
+      if (intent?.name === 'skill' && action?.name === 'charging') {  // If the charge up action is finished, trigger the charged up action.
         this.action = {
           ...intent,
           name: intent.name,
@@ -168,10 +168,10 @@ export default class Hero extends Entity {
 
       action.counter = (action.counter + timeStep) % MOVE_ACTION_CYCLE_DURATION
     
-    } else if (action.name === 'chargeUpStart') {
+    } else if (action.name === 'charging') {
       action.counter = Math.min((action.counter + timeStep), MAX_CHARGE_UP_POWER)
 
-    } else if (action.name === 'chargeUpEnd') {
+    } else if (action.name === 'skill') {
 
       const WINDUP_DURATION = EXPECTED_TIMESTEP * 5
       const EXECUTION_DURATION = EXPECTED_TIMESTEP * 2
