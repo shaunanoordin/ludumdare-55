@@ -1,6 +1,6 @@
 import { POINTER_STATES } from '@avo/constants'
 
-import Story from '../story'
+import Story from '@avo/story'
 import ImageAsset from '@avo/image-asset'
 
 import Hero from '@avo/entity/types/hero'
@@ -24,13 +24,10 @@ export default class LD55Story extends Story {
 
   start () {
     super.start()
-    this.generate_zelda_default()
+    this.load_first_scene()
   }
 
-  /*
-  Default top-down adventure level.
-   */
-  generate_zelda_default () {
+  load_first_scene () {
     const app = this._app
 
     app.hero = app.addEntity(new Hero(app, 11, 1))
@@ -42,8 +39,6 @@ export default class LD55Story extends Story {
     app.addEntity(new Wall(app, 22, 0, 1, 23))  // East Wall
     app.addEntity(new Wall(app, 1, 0, 21, 1))  // North Wall
     app.addEntity(new Wall(app, 1, 22, 21, 1))  // South Wall
-
-    app.addEntity(new Ball(app, 8, 6))
 
     const enemy = app.addEntity(new Enemy(app, 4, 8))
     enemy.rotation = -45 / 180 * Math.PI

@@ -1,5 +1,5 @@
-import AvO from './avo'
-import LD55Story from '@avo/story/types/ld55-story'
+import AvO from '@avo'
+import LD55Story from './ld55/ld55-story'
 
 var avo
 window.onload = function() {
