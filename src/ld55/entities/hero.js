@@ -3,6 +3,7 @@ import { POINTER_STATES, TILE_SIZE, EXPECTED_TIMESTEP, LAYERS, DIRECTIONS } from
 
 const INVULNERABILITY_WINDOW = 3000
 const MOVE_ACTION_CYCLE_DURATION = 500
+const MAX_CHARGE_UP_POWER = 1000
 
 export default class Hero extends Entity {
   constructor (app, col = 0, row = 0) {
@@ -18,8 +19,6 @@ export default class Hero extends Entity {
 
     this.health = 3
     this.invulnerability = 0  // Invulnerability time
-
-    this.spriteStyle = (Math.random() < 0.5) ? 'zelda' : 'toon'
   }
 
   /*
@@ -37,6 +36,8 @@ export default class Hero extends Entity {
     if (this.invulnerability > 0) {
       this.invulnerability = Math.max(this.invulnerability - timeStep, 0)
     }
+
+    this.doMaxSpeedLimit()
   }
 
   paint (layer = 0) {
@@ -48,39 +49,18 @@ export default class Hero extends Entity {
     }
 
     this.colour = (app.playerInput.pointerState === POINTER_STATES.POINTER_DOWN)
-      ? '#e42'
-      : '#c44'
+      ? '#ff3333'
+      : '#c04040'
     super.paint(layer)
 
     const c2d = app.canvas2d
-    const camera = app.camera
-    const animationSpriteSheet = (this.spriteStyle === 'zelda')
-      ? app.assets['hero-4dir']
-      : app.assets['hero-2dir']
+    const animationSpriteSheet = app.assets['hero']
     if (!animationSpriteSheet) return
 
     this._app.applyCameraTransforms()
 
-    const SPRITE_SIZE = (this.spriteStyle === 'zelda') ? 48 : 32
-    const FLIP_SPRITE = (this.spriteStyle === 'toon' && this.getSpriteDirectionEW() === DIRECTIONS.WEST) ? -1 : 1
-    const SPRITE_SCALE = 2 *
-      (Math.min((this.health / 3), 1) * 0.5 + 0.5)  // Shrink after taking damage
-
-    // Draw any special vfx
-    const action = this.action
-    if (action?.name === 'dash' && action?.state === 'execution' && layer === LAYERS.ENTITIES_LOWER) {
-      // Draw a "dash line"
-      const dashLength = this.size * 2
-      const dashWidth = this.size
-      const dashTailX = this.x - dashLength * Math.cos(this.rotation)
-      const dashTailY = this.y - dashLength * Math.sin(this.rotation)
-      c2d.beginPath()
-      c2d.moveTo(this.x, this.y)
-      c2d.lineTo(dashTailX, dashTailY)
-      c2d.strokeStyle = 'rgba(255, 255, 0, 0.5)'
-      c2d.lineWidth = dashWidth
-      c2d.stroke()
-    }
+    const SPRITE_SIZE = 48
+    const SPRITE_SCALE = 2
 
     // Draw the sprite
     if (layer === LAYERS.ENTITIES_LOWER) {
@@ -90,14 +70,12 @@ export default class Hero extends Entity {
       const sizeY = SPRITE_SIZE
 
       c2d.translate(this.x, this.y)  // 1. This moves the 'drawing origin' to match the position of (the centre of) the Entity.
-      c2d.scale(SPRITE_SCALE * FLIP_SPRITE, SPRITE_SCALE)  // 2. This ensures the sprite scales with the 'drawing origin' as the anchor point.
+      c2d.scale(SPRITE_SCALE, SPRITE_SCALE)  // 2. This ensures the sprite scales with the 'drawing origin' as the anchor point.
       // c2d.rotate(this.rotation)  // 3. If we wanted to, we could rotate the sprite around the 'drawing origin'.
 
       // 4. tgtX and tgtY specify where to draw the sprite, relative to the 'drawing origin'.
       const tgtX = -sizeX / 2  // Align centre of sprite to origin
-      const tgtY = (this.spriteStyle === 'zelda')
-        ? -sizeY * 0.75  // Align bottom(-ish) of sprite to origin
-        : -sizeY * 7/8
+      const tgtY = -sizeY * 0.625  // Align bottom(-ish) of sprite to origin
 
       c2d.drawImage(animationSpriteSheet.img,
         srcX, srcY, sizeX, sizeY,
@@ -145,12 +123,32 @@ export default class Hero extends Entity {
     } else {  // Perform a new action
       // Note: every 'move' action is considered a new action
 
-      if (action?.name === 'idle' || action?.name === 'move' )  {  // Can the action be overwritten by a new action? If not, the action must play through to its finish.
+      // "Skill" Action:
+      // If the Entity intends to execute its "skill", it can only do so after
+      // it's completed (or in the middle of) "charging up".
+      if (intent?.name === 'skill') {
+        if (action?.name === 'charging') {
+          this.action = {
+            ...intent,
+            name: intent.name,
+            counter: 0,
+            state: undefined, 
+            power: action.counter,
+          }
+        }
+        return
+      }
+
+      // All other Actions:
+      // If the Entity intends to execute a new action, it can only do so if the
+      // current action can be cancelled. (i.e. it's either "idle" or "moving".)
+      if (action?.name === 'idle' || action?.name === 'move')  {
         this.action = {
           ...intent,
           name: intent.name,
           counter: (action.name === intent.name) ? action.counter : 0,  // If the current action and new intent have the same name, it's just a continuation of the idle or move action, but with other new values (e.g. new directions)
         }
+        return
       }
     }
   }
@@ -159,6 +157,7 @@ export default class Hero extends Entity {
   Perform the action.
    */
   processAction (timeStep) {
+    const tmod = timeStep / EXPECTED_TIMESTEP
     if (!this.action) return
 
     const action = this.action
@@ -168,10 +167,11 @@ export default class Hero extends Entity {
       // Do nothing
 
     } else if (action.name === 'move') {
-
-      const moveAcceleration = this.moveAcceleration * timeStep / EXPECTED_TIMESTEP || 0
       const directionX = action.directionX || 0
       const directionY = action.directionY || 0
+      if (!directionX && !directionY) return
+
+      const moveAcceleration = this.moveAcceleration * tmod || 0
       const actionRotation = Math.atan2(directionY, directionX)
 
       this.moveX += moveAcceleration * Math.cos(actionRotation)
@@ -179,14 +179,18 @@ export default class Hero extends Entity {
       this.rotation = actionRotation
 
       action.counter = (action.counter + timeStep) % MOVE_ACTION_CYCLE_DURATION
+    
+    } else if (action.name === 'charging') {
 
-    } else if (action.name === 'dash') {
+      action.counter = Math.min((action.counter + timeStep), MAX_CHARGE_UP_POWER)
+
+    } else if (action.name === 'skill') {
+
       const WINDUP_DURATION = EXPECTED_TIMESTEP * 5
       const EXECUTION_DURATION = EXPECTED_TIMESTEP * 2
       const WINDDOWN_DURATION = EXPECTED_TIMESTEP * 10
-      const PUSH_POWER = this.size * 0.3
-      const MAX_PUSH = EXECUTION_DURATION / 1000 * 60 * PUSH_POWER
-
+      const PUSH_POWER = this.size * 0.5 * ((action.power || 0) / MAX_CHARGE_UP_POWER)
+      
       if (!action.state) {  // Trigger only once, at the start of the action
 
         // Figure out the initial direction of the dash
@@ -223,6 +227,10 @@ export default class Hero extends Entity {
           this.goIdle()
         }
       }
+
+    } else {
+      console.error(`[${this._type}] Unknown action: ${action?.name}`)
+      this.goIdle()
     }
   }
 
@@ -257,7 +265,7 @@ export default class Hero extends Entity {
   }
 
   get pushDeceleration () {
-    if (this.action?.name === 'dash' && this.action?.state === 'execution') return 0
+    if (this.action?.name === 'skill' && this.action?.state === 'execution') return 0
     return this._pushDeceleration
   }
 
@@ -266,15 +274,11 @@ export default class Hero extends Entity {
   ----------------------------------------------------------------------------
    */
   getSpriteCol () {
-    if (this.spriteStyle === 'zelda') {
-      switch (this.getSpriteDirection()) {
-        case DIRECTIONS.NORTH: return 1
-        case DIRECTIONS.EAST: return 2
-        case DIRECTIONS.SOUTH: return 0
-        case DIRECTIONS.WEST: return 3
-      }
-    } else if (this.spriteStyle === 'toon') {
-      return (this.getSpriteDirectionNS() === DIRECTIONS.NORTH) ? 1 : 0
+    switch (this.getSpriteDirection()) {
+      case DIRECTIONS.NORTH: return 1
+      case DIRECTIONS.EAST: return 2
+      case DIRECTIONS.SOUTH: return 0
+      case DIRECTIONS.WEST: return 3
     }
     return 0
   }
@@ -283,24 +287,16 @@ export default class Hero extends Entity {
     const action = this.action
     if (!action) return 0
 
-    if (this.spriteStyle === 'zelda') {
-      if (action.name === 'move') {
-        const progress = action.counter / MOVE_ACTION_CYCLE_DURATION
-        if (progress < 0.3) return 2
-        else if (progress < 0.5) return 1
-        else if (progress < 0.8) return 3
-        else if (progress < 1) return 1
-      } else if (action.name === 'dash') {
-        if (action.state === 'windup') return 4
-        else if (action.state === 'execution') return 1
-        else if (action.state === 'winddown') return 1
-      }
-    } else if (this.spriteStyle === 'toon') {
-      if (action.name === 'move') {
-        const progress = action.counter / (MOVE_ACTION_CYCLE_DURATION)
-        if (progress < 0.5) return 2
-        else return 1
-      }
+    if (action.name === 'move') {
+      const progress = action.counter / MOVE_ACTION_CYCLE_DURATION
+      if (progress < 0.3) return 2
+      else if (progress < 0.5) return 1
+      else if (progress < 0.8) return 3
+      else if (progress < 1) return 1
+    } else if (action.name === 'skill') {
+      if (action.state === 'windup') return 4
+      else if (action.state === 'execution') return 1
+      else if (action.state === 'winddown') return 1
     }
 
     return 0
