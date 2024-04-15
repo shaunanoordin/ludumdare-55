@@ -31,13 +31,12 @@ export default class Hero extends Entity {
 
     this.processIntent()
     this.processAction(timeStep)
+    this.doMaxSpeedLimit()
 
     // Count down invulnerability time
     if (this.invulnerability > 0) {
       this.invulnerability = Math.max(this.invulnerability - timeStep, 0)
     }
-
-    this.doMaxSpeedLimit()
   }
 
   paint (layer = 0) {
