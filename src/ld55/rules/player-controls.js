@@ -118,6 +118,7 @@ export default class PlayerControls extends Rule {
     const Y_OFFSET = TILE_SIZE * -1.0
     const LEFT = X_OFFSET
     const RIGHT = this._app.canvasWidth - X_OFFSET
+    const TOP = -Y_OFFSET
     const BOTTOM = this._app.canvasHeight + Y_OFFSET
     c2d.font = '2em Source Code Pro'
     c2d.textBaseline = 'bottom'
@@ -146,6 +147,10 @@ export default class PlayerControls extends Rule {
     c2d.strokeText(text, RIGHT, BOTTOM)
     c2d.fillStyle = '#c44'
     c2d.fillText(text, RIGHT, BOTTOM)
+
+    text = 'DEBUG [' + ']'
+    c2d.strokeText(text, RIGHT, TOP)
+    c2d.fillText(text, RIGHT, TOP)
   }
 
   /*
@@ -188,7 +193,6 @@ export default class PlayerControls extends Rule {
   paintLineOfSight (srcEntity) {
     if (!srcEntity) return
     const c2d = this._app.canvas2d
-    const camera = this._app.camera
     const entities = this._app.entities
     const MAX_LINE_OF_SIGHT_DISTANCE = TILE_SIZE * 5
 

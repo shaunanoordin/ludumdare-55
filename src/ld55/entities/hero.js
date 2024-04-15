@@ -123,21 +123,32 @@ export default class Hero extends Entity {
     } else {  // Perform a new action
       // Note: every 'move' action is considered a new action
 
-      if (intent?.name === 'skill' && action?.name === 'charging') {  // If the charge up action is finished, trigger the charged up action.
-        this.action = {
-          ...intent,
-          name: intent.name,
-          counter: 0,
-          power: action.counter, 
+      // "Skill" Action:
+      // If the Entity intends to execute its "skill", it can only do so after
+      // it's completed (or in the middle of) "charging up".
+      if (intent?.name === 'skill') {
+        if (action?.name === 'charging') {
+          this.action = {
+            ...intent,
+            name: intent.name,
+            counter: 0,
+            state: undefined, 
+            power: action.counter,
+          }
         }
+        return
       }
 
-      if (action?.name === 'idle' || action?.name === 'move' )  {  // Can the action be overwritten by a new action? If not, the action must play through to its finish.
+      // All other Actions:
+      // If the Entity intends to execute a new action, it can only do so if the
+      // current action can be cancelled. (i.e. it's either "idle" or "moving".)
+      if (action?.name === 'idle' || action?.name === 'move' )  {
         this.action = {
           ...intent,
           name: intent.name,
           counter: (action.name === intent.name) ? action.counter : 0,  // If the current action and new intent have the same name, it's just a continuation of the idle or move action, but with other new values (e.g. new directions)
         }
+        return
       }
     }
   }
@@ -176,7 +187,7 @@ export default class Hero extends Entity {
       const WINDUP_DURATION = EXPECTED_TIMESTEP * 5
       const EXECUTION_DURATION = EXPECTED_TIMESTEP * 2
       const WINDDOWN_DURATION = EXPECTED_TIMESTEP * 10
-      const PUSH_POWER = this.size * 0.5 * (action.power / MAX_CHARGE_UP_POWER)
+      const PUSH_POWER = this.size * 0.5 * ((action.power || 0) / MAX_CHARGE_UP_POWER)
       
       if (!action.state) {  // Trigger only once, at the start of the action
 
@@ -214,6 +225,10 @@ export default class Hero extends Entity {
           this.goIdle()
         }
       }
+
+    } else {
+      console.error(`[${this._type}] Unknown action: ${action?.name}`)
+      this.goIdle()
     }
   }
 
