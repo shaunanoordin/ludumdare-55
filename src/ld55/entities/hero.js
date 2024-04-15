@@ -142,7 +142,7 @@ export default class Hero extends Entity {
       // All other Actions:
       // If the Entity intends to execute a new action, it can only do so if the
       // current action can be cancelled. (i.e. it's either "idle" or "moving".)
-      if (action?.name === 'idle' || action?.name === 'move' )  {
+      if (action?.name === 'idle' || action?.name === 'move')  {
         this.action = {
           ...intent,
           name: intent.name,
@@ -167,10 +167,11 @@ export default class Hero extends Entity {
       // Do nothing
 
     } else if (action.name === 'move') {
-
-      const moveAcceleration = this.moveAcceleration * tmod || 0
       const directionX = action.directionX || 0
       const directionY = action.directionY || 0
+      if (!directionX && !directionY) return
+
+      const moveAcceleration = this.moveAcceleration * tmod || 0
       const actionRotation = Math.atan2(directionY, directionX)
 
       this.moveX += moveAcceleration * Math.cos(actionRotation)
@@ -180,6 +181,7 @@ export default class Hero extends Entity {
       action.counter = (action.counter + timeStep) % MOVE_ACTION_CYCLE_DURATION
     
     } else if (action.name === 'charging') {
+
       action.counter = Math.min((action.counter + timeStep), MAX_CHARGE_UP_POWER)
 
     } else if (action.name === 'skill') {
@@ -263,7 +265,7 @@ export default class Hero extends Entity {
   }
 
   get pushDeceleration () {
-    if (this.action?.name === 'dash' && this.action?.state === 'execution') return 0
+    if (this.action?.name === 'skill' && this.action?.state === 'execution') return 0
     return this._pushDeceleration
   }
 
@@ -291,7 +293,7 @@ export default class Hero extends Entity {
       else if (progress < 0.5) return 1
       else if (progress < 0.8) return 3
       else if (progress < 1) return 1
-    } else if (action.name === 'dash') {
+    } else if (action.name === 'skill') {
       if (action.state === 'windup') return 4
       else if (action.state === 'execution') return 1
       else if (action.state === 'winddown') return 1
