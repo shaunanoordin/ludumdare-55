@@ -55,7 +55,7 @@ export default class AvO {
 
     this.hero = null
     this.entities = []
-    this.rules = {}
+    this.rules = new Map()
     this.story = (story) ? new story(this) : undefined
     this.assets = this.story?.assets || {}
     this.secretAssets = {}
@@ -163,7 +163,7 @@ export default class AvO {
 
     // Run the action gameplay
     // ----------------
-    for (const id in this.rules) { this.rules[id].play(timeStep) }
+    this.rules.forEach(rule => rule.play(timeStep))
 
     this.entities.forEach(entity => entity.play(timeStep))
     this.checkCollisions(timeStep)
@@ -173,12 +173,12 @@ export default class AvO {
     this.entities = this.entities.filter(entity => !entity._expired)
 
     // Cleanup: rules
-    for (const id in this.rules) {
-      if (this.rules[id]._expired) {
-        this.rules[id].deconstructor()
-        delete this.rules[id]
+    this.rules.forEach((rule, id) => {
+      if (rule.expired) {
+        rule.deconstructor()
+        this.rules.delete(id)
       }
-    }
+    })
 
     // Sort Entities along the y-axis, for paint()/rendering purposes.
     // WARNING: inefficient
@@ -247,7 +247,7 @@ export default class AvO {
     // ----------------
     for (let layer = MIN_LAYER ; layer <= MAX_LAYER ; layer++) {
       this.entities.forEach(entity => entity.paint(layer))
-      for (const id in this.rules) { this.rules[id].paint(layer) }
+      this.rules.forEach(rule => rule.paint(layer))
     }
     // ----------------
   }
@@ -536,14 +536,14 @@ export default class AvO {
   addRule (rule) {
     if (!rule) return
     const id = rule._type
-    this.rules[id] = rule
+    this.rules.set(id, rule)
   }
 
   clearRules () {
-    for (const id in this.rules) {
-      this.rules[id].deconstructor()
-      delete this.rules[id]
-    }
+    this.rules.forEach((rule, id) => {
+      rule.deconstructor()
+      this.rules.delete(id)
+    })
   }
 
   /*
