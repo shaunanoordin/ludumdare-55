@@ -3,7 +3,7 @@ import { POINTER_STATES, TILE_SIZE, EXPECTED_TIMESTEP, LAYERS, DIRECTIONS } from
 
 const INVULNERABILITY_WINDOW = 3000
 const MOVE_ACTION_CYCLE_DURATION = 500
-const MAX_CHARGE_UP_POWER = 1000
+const MAX_CHARGING_POWER = 1000
 
 export default class Hero extends Entity {
   constructor (app, col = 0, row = 0) {
@@ -31,13 +31,12 @@ export default class Hero extends Entity {
 
     this.processIntent()
     this.processAction(timeStep)
+    this.doMaxSpeedLimit()
 
     // Count down invulnerability time
     if (this.invulnerability > 0) {
       this.invulnerability = Math.max(this.invulnerability - timeStep, 0)
     }
-
-    this.doMaxSpeedLimit()
   }
 
   paint (layer = 0) {
@@ -61,6 +60,27 @@ export default class Hero extends Entity {
 
     const SPRITE_SIZE = 48
     const SPRITE_SCALE = 2
+
+    // Draw the VFX
+    if (layer === LAYERS.ENTITIES_LOWER && this.action?.name === 'charging') {
+      const minRadius = this.size * 0.5
+      const maxRadius = this.size * 1
+      const range = maxRadius - minRadius
+      const ratio = (this.action?.counter || 0) / MAX_CHARGING_POWER
+      const radius = minRadius + range * ratio / 2
+
+      c2d.strokeStyle = '#ff3'
+      c2d.lineWidth = (radius - minRadius) * 2
+      c2d.beginPath()
+      c2d.arc(this.x, this.y, radius, 0, 2 * Math.PI)
+      c2d.stroke()
+
+      c2d.strokeStyle = '#f33'
+      c2d.lineWidth = 2
+      c2d.beginPath()
+      c2d.arc(this.x, this.y, maxRadius, 0, 2 * Math.PI)
+      c2d.stroke()
+    }
 
     // Draw the sprite
     if (layer === LAYERS.ENTITIES_LOWER) {
@@ -182,14 +202,14 @@ export default class Hero extends Entity {
     
     } else if (action.name === 'charging') {
 
-      action.counter = Math.min((action.counter + timeStep), MAX_CHARGE_UP_POWER)
+      action.counter = Math.min((action.counter + timeStep), MAX_CHARGING_POWER)
 
     } else if (action.name === 'skill') {
 
       const WINDUP_DURATION = EXPECTED_TIMESTEP * 5
       const EXECUTION_DURATION = EXPECTED_TIMESTEP * 2
       const WINDDOWN_DURATION = EXPECTED_TIMESTEP * 10
-      const PUSH_POWER = this.size * 0.5 * ((action.power || 0) / MAX_CHARGE_UP_POWER)
+      const PUSH_POWER = this.size * 0.5 * ((action.power || 0) / MAX_CHARGING_POWER)
       
       if (!action.state) {  // Trigger only once, at the start of the action
 
