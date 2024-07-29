@@ -55,6 +55,7 @@ export default class AvO {
 
     this.hero = null
     this.entities = []
+    this.tiles = []
     this.rules = new Map()
     this.story = (story) ? new story(this) : undefined
     this.assets = this.story?.assets || {}
@@ -245,7 +246,15 @@ export default class AvO {
 
     // Draw entities and other elements
     // ----------------
+    const MAP_WIDTH = 24
+    const MAP_HEIGHT = 24
     for (let layer = MIN_LAYER ; layer <= MAX_LAYER ; layer++) {
+      for (let row = 0 ; row < MAP_HEIGHT ; row++) {
+        for (let col = 0 ; col < MAP_WIDTH ; col++) {
+          this.tiles[row][col].paint(layer)
+        }
+      }
+
       this.entities.forEach(entity => entity.paint(layer))
       this.rules.forEach(rule => rule.paint(layer))
     }
