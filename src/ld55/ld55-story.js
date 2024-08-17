@@ -5,7 +5,7 @@ import { ROTATIONS } from '@avo/constants'
 import Hero from './entities/hero'
 import Wizard from './entities/wizard'
 import Wall from '@avo/entity/types/wall'
-import Tile from '@avo/entity/types/tile'
+import Tile from '@avo/tile'
 
 import PlayerControls from './rules/player-controls'
 
