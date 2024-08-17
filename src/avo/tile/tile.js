@@ -8,6 +8,7 @@ export default class Tile {
     this.colour = '#f0f0f0'
     this.solid = false
     this.movable = false
+    this.mass = 100
 
     this.col = col
     this.row = row
@@ -29,6 +30,8 @@ export default class Tile {
     this._app.undoCameraTransforms()
   }
 
+  onCollision (target, collisionCorrection) {}
+
   /*
   Section: Getters and Setters
   ----------------------------------------------------------------------------
@@ -49,4 +52,15 @@ export default class Tile {
 
   set col (val) { this.x = val * TILE_SIZE + TILE_SIZE / 2 }
   set row (val) { this.y = val * TILE_SIZE + TILE_SIZE / 2 }
+
+  get vertices () {
+    return [
+      { x: this.left, y: this.top },
+      { x: this.right, y: this.top },
+      { x: this.right, y: this.bottom },
+      { x: this.left, y: this.bottom }
+    ]
+  }
+
+  set vertices (val) { console.error('ERROR: Tile.vertices is read only') }
 }

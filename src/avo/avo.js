@@ -602,6 +602,19 @@ export default class AvO {
           entityB.onCollision(entityA, collisionCorrection.b)
         }
       }
+
+      const range = Math.ceil(entityA.size / TILE_SIZE)
+      for (let row = entityA.row - range ; row <= entityA.row + range ; row++) {
+        for (let col = entityA.col - range ; col <= entityA.col + range ; col++) {
+          const tile = this.tiles?.[row]?.[col]
+          let collisionCorrection = Physics.checkCollision(entityA, tile)
+
+          if (collisionCorrection) {
+            entityA.onCollision(tile, collisionCorrection.a)
+            tile.onCollision(entityA, collisionCorrection.b)
+          }
+        }
+      }
     }
   }
 
