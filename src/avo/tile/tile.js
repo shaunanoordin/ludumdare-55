@@ -1,4 +1,3 @@
-import Entity from '@avo/entity'
 import { TILE_SIZE, SHAPES, LAYERS } from '@avo/constants'
 
 export default class Tile {
