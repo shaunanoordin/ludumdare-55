@@ -11,8 +11,8 @@ export default class Hero extends Entity {
     this._type = 'hero'
 
     this.colour = '#000'
-    this.x = col * TILE_SIZE + TILE_SIZE / 2
-    this.y = row * TILE_SIZE + TILE_SIZE / 2
+    this.col = col
+    this.row = row
 
     this.intent = undefined
     this.action = undefined

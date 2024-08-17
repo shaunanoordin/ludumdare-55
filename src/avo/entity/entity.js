@@ -323,6 +323,12 @@ export default class Entity {
 
   set radius (val) { this.size = val * 2 }
 
+  get col () { return Math.floor(this.x / TILE_SIZE) }
+  get row () { return Math.floor(this.y / TILE_SIZE) }
+
+  set col (val) { this.x = val * TILE_SIZE + TILE_SIZE / 2 }
+  set row (val) { this.y = val * TILE_SIZE + TILE_SIZE / 2 }
+
   /*
   Rotation tracks the precise angle the entity is facing, in radians, clockwise
   positive. 0° (0 rad) is east/right-facing, 90° (+pi/4 rad) is
