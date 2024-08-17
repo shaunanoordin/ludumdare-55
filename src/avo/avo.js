@@ -642,10 +642,3 @@ function stopEvent (e) {
   e.cancelBubble = true
   return false
 }
-
-const EVENT_TO_FUNCTION_MAP = {
-  'keydown': 'onKeyDown',
-  'keyup': 'onKeyUp',
-  'pointerholdend': 'onPointerHoldEnd',
-  'pointertap': 'onPointerTap',
-}
