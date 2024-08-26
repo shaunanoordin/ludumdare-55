@@ -55,6 +55,7 @@ export default class AvO {
 
     this.hero = null
     this.entities = []
+    this.tiles = []
     this.rules = new Map()
     this.story = (story) ? new story(this) : undefined
     this.assets = this.story?.assets || {}
@@ -245,7 +246,15 @@ export default class AvO {
 
     // Draw entities and other elements
     // ----------------
+    const MAP_WIDTH = 24
+    const MAP_HEIGHT = 24
     for (let layer = MIN_LAYER ; layer <= MAX_LAYER ; layer++) {
+      for (let row = 0 ; row < MAP_HEIGHT ; row++) {
+        for (let col = 0 ; col < MAP_WIDTH ; col++) {
+          this.tiles[row][col].paint(layer)
+        }
+      }
+
       this.entities.forEach(entity => entity.paint(layer))
       this.rules.forEach(rule => rule.paint(layer))
     }
@@ -593,6 +602,19 @@ export default class AvO {
           entityB.onCollision(entityA, collisionCorrection.b)
         }
       }
+
+      const range = Math.ceil(entityA.size / TILE_SIZE)
+      for (let row = entityA.row - range ; row <= entityA.row + range ; row++) {
+        for (let col = entityA.col - range ; col <= entityA.col + range ; col++) {
+          const tile = this.tiles?.[row]?.[col]
+          let collisionCorrection = Physics.checkCollision(entityA, tile)
+
+          if (collisionCorrection) {
+            entityA.onCollision(tile, collisionCorrection.a)
+            tile.onCollision(entityA, collisionCorrection.b)
+          }
+        }
+      }
     }
   }
 
@@ -632,11 +654,4 @@ function stopEvent (e) {
   e.returnValue = false
   e.cancelBubble = true
   return false
-}
-
-const EVENT_TO_FUNCTION_MAP = {
-  'keydown': 'onKeyDown',
-  'keyup': 'onKeyUp',
-  'pointerholdend': 'onPointerHoldEnd',
-  'pointertap': 'onPointerTap',
 }

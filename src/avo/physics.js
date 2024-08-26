@@ -189,7 +189,6 @@ export default class Physics {
     const distX = objB.x - objA.x
     const distY = objB.y - objA.y
     const dist = Math.sqrt(distX * distX + distY * distY)
-    const angle = Math.atan2(distY, distX)
     const centreToCentreAxis = (dist !== 0)
       ? { x: distX / dist, y: distY / dist }
       : { x: 0, y: 0 }

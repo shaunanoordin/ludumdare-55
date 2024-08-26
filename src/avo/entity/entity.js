@@ -86,29 +86,29 @@ export default class Entity {
 
       // Draw shape outline
       switch (this.shape) {
-      case SHAPES.CIRCLE:
-        c2d.beginPath()
-        c2d.arc(this.x, this.y, this.size / 2, 0, 2 * Math.PI)
-        c2d.fill()
-        this.solid && c2d.stroke()
-        break
-      case SHAPES.SQUARE:
-        c2d.beginPath()
-        c2d.rect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size)
-        c2d.fill()
-        this.solid && c2d.stroke()
-        break
-      case SHAPES.POLYGON:
-        c2d.beginPath()
-        let coords = this.vertices
-        if (coords.length >= 1) c2d.moveTo(coords[coords.length-1].x, coords[coords.length-1].y)
-        for (let i = 0 ; i < coords.length ; i++) {
-          c2d.lineTo(coords[i].x, coords[i].y)
-        }
-        c2d.closePath()
-        c2d.fill()
-        this.solid && c2d.stroke()
-        break
+        case SHAPES.CIRCLE:
+          c2d.beginPath()
+          c2d.arc(this.x, this.y, this.size / 2, 0, 2 * Math.PI)
+          c2d.fill()
+          this.solid && c2d.stroke()
+          break
+        case SHAPES.SQUARE:
+          c2d.beginPath()
+          c2d.rect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size)
+          c2d.fill()
+          this.solid && c2d.stroke()
+          break
+        case SHAPES.POLYGON:
+          c2d.beginPath()
+          let coords = this.vertices
+          if (coords.length >= 1) c2d.moveTo(coords[coords.length-1].x, coords[coords.length-1].y)
+          for (let i = 0 ; i < coords.length ; i++) {
+            c2d.lineTo(coords[i].x, coords[i].y)
+          }
+          c2d.closePath()
+          c2d.fill()
+          this.solid && c2d.stroke()
+          break
       }
 
       // Draw anchor point, mostly for debugging
@@ -322,6 +322,12 @@ export default class Entity {
   get radius () { return this.size / 2 }
 
   set radius (val) { this.size = val * 2 }
+
+  get col () { return Math.floor(this.x / TILE_SIZE) }
+  get row () { return Math.floor(this.y / TILE_SIZE) }
+
+  set col (val) { this.x = val * TILE_SIZE + TILE_SIZE / 2 }
+  set row (val) { this.y = val * TILE_SIZE + TILE_SIZE / 2 }
 
   /*
   Rotation tracks the precise angle the entity is facing, in radians, clockwise
